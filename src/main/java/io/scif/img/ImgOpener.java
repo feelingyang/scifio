@@ -6,13 +6,13 @@
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice,
  *    this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -44,7 +44,6 @@ import io.scif.img.converters.PlaneConverterService;
 import io.scif.services.InitializeService;
 import io.scif.util.FormatTools;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -65,6 +64,8 @@ import net.imglib2.type.numeric.RealType;
 
 import org.scijava.Context;
 import org.scijava.app.StatusService;
+import org.scijava.io.location.FileLocation;
+import org.scijava.io.location.Location;
 import org.scijava.plugin.Parameter;
 
 /**
@@ -105,7 +106,7 @@ public class ImgOpener extends AbstractImgIOComponent {
 	 * @return - the {@link ImgPlus} or null
 	 * @throws ImgIOException if there is a problem reading the image data.
 	 */
-	public List<SCIFIOImgPlus<?>> openImgs(final String source)
+	public List<SCIFIOImgPlus<?>> openImgs(final Location source)
 		throws ImgIOException
 	{
 		return openImgs(source, (SCIFIOConfig) null);
@@ -120,7 +121,7 @@ public class ImgOpener extends AbstractImgIOComponent {
 	 * @throws ImgIOException if there is a problem reading the image data.
 	 */
 	public <T extends RealType<T> & NativeType<T>> List<SCIFIOImgPlus<T>>
-		openImgs(final String source, final T type) throws ImgIOException
+		openImgs(final Location source, final T type) throws ImgIOException
 	{
 		return openImgs(source, type, null);
 	}
@@ -134,7 +135,7 @@ public class ImgOpener extends AbstractImgIOComponent {
 	 * @return - the {@link ImgPlus} or null
 	 * @throws ImgIOException if there is a problem reading the image data.
 	 */
-	public List<SCIFIOImgPlus<?>> openImgs(final String source,
+	public List<SCIFIOImgPlus<?>> openImgs(final Location source,
 		SCIFIOConfig config) throws ImgIOException
 	{
 		if (config == null) {
@@ -155,7 +156,7 @@ public class ImgOpener extends AbstractImgIOComponent {
 	 * @throws ImgIOException if there is a problem reading the image data.
 	 */
 	public <T extends RealType<T> & NativeType<T>> List<SCIFIOImgPlus<T>>
-		openImgs(final String source, final T type, SCIFIOConfig config)
+		openImgs(final Location source, final T type, SCIFIOConfig config)
 			throws ImgIOException
 	{
 		if (config == null) {
@@ -173,9 +174,9 @@ public class ImgOpener extends AbstractImgIOComponent {
 	 * @return - the {@link ImgPlus} or null
 	 * @throws ImgIOException if there is a problem reading the image data.
 	 */
-	public <T extends RealType<T> & NativeType<T>> List<SCIFIOImgPlus<T>>
-		openImgs(final String source, final ImgFactory<T> imgFactory)
-			throws ImgIOException
+	@SuppressWarnings("rawtypes")
+	public List<SCIFIOImgPlus<?>> openImgs(final Location source,
+		final ImgFactory imgFactory) throws ImgIOException
 	{
 		return openImgs(source, imgFactory, (SCIFIOConfig) null);
 	}
@@ -188,15 +189,38 @@ public class ImgOpener extends AbstractImgIOComponent {
 	 * @return - the {@link ImgPlus} or null
 	 * @throws ImgIOException if there is a problem reading the image data.
 	 */
-	public <T extends RealType<T> & NativeType<T>> List<SCIFIOImgPlus<T>> openImgs(
-		final String source, final ImgFactory<T> imgFactory, SCIFIOConfig config)
-		throws ImgIOException
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public List<SCIFIOImgPlus<?>> openImgs(final Location source,
+		final ImgFactory imgFactory, SCIFIOConfig config) throws ImgIOException
 	{
 		if (config == null) {
 			config = new SCIFIOConfig().imgOpenerSetComputeMinMax(true);
 		}
 		final Reader r = createReader(source, config);
-		return openImgs(r, imgFactory, config);
+		final RealType t = getType(r);
+		return openImgs(r, t, imgFactory, config);
+	}
+
+	/**
+	 * @param source - the location of the dataset to open
+	 * @param imgFactory - The {@link ImgFactory} to use for creating the
+	 *          resultant {@link ImgPlus}.
+	 * @param type - The {@link Type} T of the output {@link ImgPlus}, which must
+	 *          match the typing of the {@link ImgFactory}.
+	 * @return - the {@link ImgPlus} or null
+	 * @throws ImgIOException if there is a problem reading the image data.
+	 */
+	public <T extends RealType<T>> List<SCIFIOImgPlus<T>> openImgs(
+		final Location source, final ImgFactory<T> imgFactory, final T type)
+		throws ImgIOException
+	{
+
+		final SCIFIOConfig config = new SCIFIOConfig().imgOpenerSetComputeMinMax(
+			true);
+
+		final Reader r = createReader(source, config);
+
+		return openImgs(r, type, imgFactory, config);
 	}
 
 	/**
@@ -230,9 +254,9 @@ public class ImgOpener extends AbstractImgIOComponent {
 
 		ImgFactory imgFactory;
 		try {
-			if (t instanceof NativeType) {
-				imgFactory = heuristic.createFactory(reader.getMetadata(), //
-					config.imgOpenerGetImgModes(), (NativeType) t);
+			if (NativeType.class.isAssignableFrom(t.getClass())) {
+				imgFactory = heuristic.createFactory(reader.getMetadata(), config
+					.imgOpenerGetImgModes(), (NativeType) t);
 			}
 			else return null;
 		}
@@ -240,7 +264,7 @@ public class ImgOpener extends AbstractImgIOComponent {
 			throw new ImgIOException(e);
 		}
 
-		return openImgs(reader, imgFactory, config);
+		return openImgs(reader, t, imgFactory, config);
 	}
 
 	/**
@@ -263,15 +287,14 @@ public class ImgOpener extends AbstractImgIOComponent {
 
 		ImgFactory<T> imgFactory;
 		try {
-			imgFactory =
-				heuristic.createFactory(reader.getMetadata(), config
-					.imgOpenerGetImgModes(), type);
+			imgFactory = heuristic.createFactory(reader.getMetadata(), config
+				.imgOpenerGetImgModes(), type);
 		}
 		catch (final IncompatibleTypeException e) {
 			throw new ImgIOException(e);
 		}
 
-		return openImgs(reader, imgFactory, config);
+		return openImgs(reader, type, imgFactory, config);
 	}
 
 	/**
@@ -286,13 +309,15 @@ public class ImgOpener extends AbstractImgIOComponent {
 	 *          data.
 	 * @param imgFactory - The {@link ImgFactory} to use for creating the
 	 *          resultant {@link ImgPlus}.
+	 * @param type - The {@link Type} T of the output {@link ImgPlus}, which must
+	 *          match the typing of the {@link ImgFactory}.
 	 * @param config - {@link SCIFIOConfig} to use when opening this dataset
 	 * @return - the {@link ImgPlus} or null
 	 * @throws ImgIOException if there is a problem reading the image data.
 	 */
-	public <T extends RealType<T>> List<SCIFIOImgPlus<T>> openImgs(
-		Reader reader, final ImgFactory<T> imgFactory,
-		SCIFIOConfig config) throws ImgIOException
+	public <T extends RealType<T>> List<SCIFIOImgPlus<T>> openImgs(Reader reader,
+		final T type, final ImgFactory<T> imgFactory, SCIFIOConfig config)
+		throws ImgIOException
 	{
 		if (!ReaderFilter.class.isAssignableFrom(reader.getClass())) {
 			reader = new ReaderFilter(reader);
@@ -315,25 +340,23 @@ public class ImgOpener extends AbstractImgIOComponent {
 		for (final Long imageIndex : imageRange) {
 
 			// create image and read metadata
-			final long[] dimLengths =
-				utils().getConstrainedLengths(reader.getMetadata(), i(imageIndex),
-					config);
+			final long[] dimLengths = utils().getConstrainedLengths(reader
+				.getMetadata(), i(imageIndex), config);
 			if (SCIFIOCellImgFactory.class.isAssignableFrom(imgFactory.getClass())) {
 				((SCIFIOCellImgFactory<?>) imgFactory).setReader(reader, i(imageIndex));
 				((SCIFIOCellImgFactory<?>) imgFactory).setSubRegion(config
 					.imgOpenerGetRegion());
 			}
-			final Img<T> img = imgFactory.create(dimLengths);
-			final SCIFIOImgPlus<T> imgPlus =
-				makeImgPlus(img, reader, i(imageIndex));
+			final Img<T> img = imgFactory.create(dimLengths, type);
+			final SCIFIOImgPlus<T> imgPlus = makeImgPlus(img, reader, i(imageIndex));
 
-			String id = reader.getCurrentFile();
-			imgPlus.setSource(id);
+			final Location id = reader.getCurrentFile();
+			imgPlus.setSource(id.getName());
 			imgPlus.initializeColorTables(i(reader.getPlaneCount(i(imageIndex))));
 
 			if (!config.imgOpenerIsComputeMinMax()) {
-				final long[] defaultMinMax =
-					FormatTools.defaultMinMax(reader.getMetadata().get(i(imageIndex)));
+				final long[] defaultMinMax = FormatTools.defaultMinMax(reader
+					.getMetadata().get(i(imageIndex)));
 				for (int c = 0; c < imgPlus.getCompositeChannelCount(); c++) {
 					imgPlus.setChannelMinimum(c, defaultMinMax[0]);
 					imgPlus.setChannelMaximum(c, defaultMinMax[1]);
@@ -344,16 +367,14 @@ public class ImgOpener extends AbstractImgIOComponent {
 			final Metadata meta = reader.getMetadata();
 			imgPlus.setMetadata(meta);
 			imgPlus.setImageMetadata(meta.get(i(imageIndex)));
-			imgPlus.setROIsAndTablesProperties(meta, i(imageIndex));
 
 			// If we have a planar img, read the planes now. Otherwise they
 			// will be read on demand.
-			if (!SCIFIOCellImgFactory.class.isAssignableFrom(imgFactory.getClass()))
-			{
+			if (!SCIFIOCellImgFactory.class.isAssignableFrom(imgFactory.getClass())) {
 				final float startTime = System.currentTimeMillis();
 				final long planeCount = reader.getPlaneCount(i(imageIndex));
 				try {
-					readPlanes(reader, i(imageIndex), imgPlus, config);
+					readPlanes(reader, i(imageIndex), type, imgPlus, config);
 				}
 				catch (final FormatException e) {
 					throw new ImgIOException(e);
@@ -363,8 +384,8 @@ public class ImgOpener extends AbstractImgIOComponent {
 				}
 				final long endTime = System.currentTimeMillis();
 				final float time = (endTime - startTime) / 1000f;
-				statusService.showStatus(id == null ? "Image" : id + ": read " + planeCount + " planes in " +
-					time + "s");
+				statusService.showStatus(id == null ? "Image" : id + ": read " +
+					planeCount + " planes in " + time + "s");
 			}
 			imgPluses.add(imgPlus);
 		}
@@ -384,6 +405,122 @@ public class ImgOpener extends AbstractImgIOComponent {
 		return imgPluses;
 	}
 
+	// -- Deprecated API --
+
+	/**
+	 * @deprecated
+	 * @see #openImgs(Location)
+	 */
+	@Deprecated
+	public SCIFIOImgPlus<?> openImg(final String source) throws ImgIOException {
+		return openImgs(new FileLocation(source)).get(0);
+	}
+
+	/**
+	 * @deprecated
+	 * @see #openImgs(String, RealType)
+	 */
+	@Deprecated
+	public <T extends RealType<T> & NativeType<T>> SCIFIOImgPlus<T> openImg(
+		final String source, final T type) throws ImgIOException
+	{
+		return openImgs(new FileLocation(source), type).get(0);
+	}
+
+	/**
+	 * @deprecated
+	 * @see #openImgs(Reader, SCIFIOConfig)
+	 */
+	@Deprecated
+	public SCIFIOImgPlus<?> openImg(final String source,
+		final SCIFIOConfig config) throws ImgIOException
+	{
+		return openImgs(new FileLocation(source), config).get(0);
+	}
+
+	/**
+	 * @deprecated
+	 * @see #openImgs(Reader, RealType, SCIFIOConfig)
+	 */
+	@Deprecated
+	public <T extends RealType<T> & NativeType<T>> SCIFIOImgPlus<T> openImg(
+		final String source, final T type, final SCIFIOConfig config)
+		throws ImgIOException
+	{
+		return openImgs(new FileLocation(source), type, config).get(0);
+	}
+
+	/**
+	 * @deprecated
+	 * @see #openImgs(String, ImgFactory)
+	 */
+	@Deprecated
+	@SuppressWarnings("rawtypes")
+	public SCIFIOImgPlus<?> openImg(final String source,
+		final ImgFactory imgFactory) throws ImgIOException
+	{
+		return openImgs(new FileLocation(source), imgFactory).get(0);
+	}
+
+	/**
+	 * @deprecated
+	 * @see #openImgs(Location, ImgFactory, SCIFIOConfig)
+	 */
+	@Deprecated
+	@SuppressWarnings("rawtypes")
+	public SCIFIOImgPlus<?> openImg(final String source,
+		final ImgFactory imgFactory, final SCIFIOConfig config)
+		throws ImgIOException
+	{
+		return openImgs(new FileLocation(source), imgFactory, config).get(0);
+	}
+
+	/**
+	 * @deprecated
+	 * @see #openImgs(Location, ImgFactory, RealType)
+	 */
+	@Deprecated
+	public <T extends RealType<T>> SCIFIOImgPlus<T> openImg(final String source,
+		final ImgFactory<T> imgFactory, final T type) throws ImgIOException
+	{
+		return openImgs(new FileLocation(source), imgFactory, type).get(0);
+	}
+
+	/**
+	 * @deprecated
+	 * @see #openImgs(Reader, SCIFIOConfig)
+	 */
+	@Deprecated
+	public SCIFIOImgPlus<?> openImg(final Reader reader,
+		final SCIFIOConfig config) throws ImgIOException
+	{
+		return openImgs(reader, config).get(0);
+	}
+
+	/**
+	 * @deprecated
+	 * @see #openImgs(Reader, RealType, SCIFIOConfig)
+	 */
+	@Deprecated
+	public <T extends RealType<T> & NativeType<T>> SCIFIOImgPlus<T> openImg(
+		final Reader reader, final T type, final SCIFIOConfig config)
+		throws ImgIOException
+	{
+		return openImgs(reader, type, config).get(0);
+	}
+
+	/**
+	 * @deprecated
+	 * @see #openImgs(Reader, RealType, ImgFactory, SCIFIOConfig)
+	 */
+	@Deprecated
+	public <T extends RealType<T>> SCIFIOImgPlus<T> openImg(final Reader reader,
+		final T type, final ImgFactory<T> imgFactory, final SCIFIOConfig config)
+		throws ImgIOException
+	{
+		return openImgs(reader, type, imgFactory, config).get(0);
+	}
+
 	// -- Helper methods --
 
 	@SuppressWarnings("rawtypes")
@@ -392,8 +529,8 @@ public class ImgOpener extends AbstractImgIOComponent {
 	}
 
 	private ImgFactoryHeuristic getHeuristic(final SCIFIOConfig imgOptions) {
-		ImgFactoryHeuristic heuristic =
-			imgOptions.imgOpenerGetImgFactoryHeuristic();
+		ImgFactoryHeuristic heuristic = imgOptions
+			.imgOpenerGetImgFactoryHeuristic();
 
 		if (heuristic == null) heuristic = new DefaultImgFactoryHeuristic();
 
@@ -405,7 +542,7 @@ public class ImgOpener extends AbstractImgIOComponent {
 	 * @param config - Options object for opening this dataset
 	 * @return A Reader initialized to open the specified id
 	 */
-	private Reader createReader(final String source, final SCIFIOConfig config)
+	private Reader createReader(final Location source, final SCIFIOConfig config)
 		throws ImgIOException
 	{
 
@@ -460,9 +597,8 @@ public class ImgOpener extends AbstractImgIOComponent {
 
 		final double[] calibration = new double[m.get(imageIndex).getAxes().size()];
 		for (int i = 0; i < calibration.length; i++) {
-			calibration[i] =
-				FormatTools
-					.getScale(m, imageIndex, m.get(imageIndex).getAxis(i).type());
+			calibration[i] = FormatTools.getScale(m, imageIndex, m.get(imageIndex)
+				.getAxis(i).type());
 		}
 
 		return calibration;
@@ -472,18 +608,17 @@ public class ImgOpener extends AbstractImgIOComponent {
 	 * Wraps the given {@link Img} in an {@link ImgPlus} with metadata
 	 * corresponding to the specified initialized {@link Reader}.
 	 */
-	private <T extends RealType<T>> SCIFIOImgPlus<T> makeImgPlus(
-		final Img<T> img, final Reader r, final int imageIndex)
+	private <T extends RealType<T>> SCIFIOImgPlus<T> makeImgPlus(final Img<T> img,
+		final Reader r, final int imageIndex)
 	{
-		final String id = r.getCurrentFile();
+		final Location id = r.getCurrentFile();
 		String name = null;
 
 		if (id != null) {
-			final File idFile = new File(id);
-			name = idFile.exists() ? idFile.getName() : id;
+			name = id.getName();
 		}
 
-		if (name == null) name = "Image: " + r.getFormatName();
+		if (name == null || name.equals("")) name = "Image: " + r.getFormatName();
 
 		final double[] cal = getCalibration(imageIndex, r.getMetadata());
 		final AxisType[] dimTypes = getAxisTypes(imageIndex, r.getMetadata());
@@ -492,13 +627,12 @@ public class ImgOpener extends AbstractImgIOComponent {
 		base = unwrap(r);
 
 		final Metadata meta = r.getMetadata();
-		final int rgbChannelCount =
-			base.getMetadata().get(0).isMultichannel() ? (int) base.getMetadata()
-				.get(0).getAxisLength(Axes.CHANNEL) : 1;
+		final int rgbChannelCount = base.getMetadata().get(0).isMultichannel()
+			? (int) base.getMetadata().get(0).getAxisLength(Axes.CHANNEL) : 1;
 		final int validBits = meta.get(0).getBitsPerPixel();
 
-		final SCIFIOImgPlus<T> imgPlus =
-			new SCIFIOImgPlus<>(img, name, dimTypes, cal);
+		final SCIFIOImgPlus<T> imgPlus = new SCIFIOImgPlus<>(img, name, dimTypes,
+			cal);
 		final String metaName = meta.get(imageIndex).getName();
 		if (metaName != null) imgPlus.setName(metaName);
 		imgPlus.setValidBits(validBits);
@@ -550,7 +684,7 @@ public class ImgOpener extends AbstractImgIOComponent {
 	 * {@link Img}.
 	 */
 	private <T extends RealType<T>> void readPlanes(final Reader r,
-		final int imageIndex, final ImgPlus<T> imgPlus,
+		final int imageIndex, final T type, final ImgPlus<T> imgPlus,
 		final SCIFIOConfig config) throws FormatException, IOException
 	{
 		// TODO - create better container types; either:
@@ -571,16 +705,16 @@ public class ImgOpener extends AbstractImgIOComponent {
 		// get container
 		final PlanarAccess<?> planarAccess = utils().getPlanarAccess(imgPlus);
 		@SuppressWarnings("rawtypes")
-		final RealType inputType =
-			utils().makeType(r.getMetadata().get(0).getPixelType());
-		final T outputType = imgPlus.firstElement();
-		final boolean compatibleTypes =
-			outputType.getClass().isAssignableFrom(inputType.getClass());
+		final RealType inputType = utils().makeType(r.getMetadata().get(0)
+			.getPixelType());
+		final T outputType = type;
+		final boolean compatibleTypes = outputType.getClass().isAssignableFrom(
+			inputType.getClass());
 
 		// populate planes
 		final boolean isPlanar = planarAccess != null && compatibleTypes;
-		final boolean isArray =
-			utils().getArrayAccess(imgPlus) != null && compatibleTypes;
+		final boolean isArray = utils().getArrayAccess(imgPlus) != null &&
+			compatibleTypes;
 
 		final ImageRegion region = config.imgOpenerGetRegion();
 
@@ -589,11 +723,11 @@ public class ImgOpener extends AbstractImgIOComponent {
 		// Starting indices for the planar dimensions
 		final long[] planarMin = new long[m.get(imageIndex).getAxesPlanar().size()];
 		// Lengths in the planar dimensions
-		final long[] planarLength =
-			new long[m.get(imageIndex).getAxesPlanar().size()];
+		final long[] planarLength = new long[m.get(imageIndex).getAxesPlanar()
+			.size()];
 		// Non-planar indices to open
-		final Range[] npRanges =
-			new Range[m.get(imageIndex).getAxesNonPlanar().size()];
+		final Range[] npRanges = new Range[m.get(imageIndex).getAxesNonPlanar()
+			.size()];
 		final long[] npIndices = new long[npRanges.length];
 
 		// populate plane dimensions
@@ -601,8 +735,8 @@ public class ImgOpener extends AbstractImgIOComponent {
 		for (final CalibratedAxis planarAxis : m.get(imageIndex).getAxesPlanar()) {
 			if (region != null && region.hasRange(planarAxis.type())) {
 				planarMin[index] = region.getRange(planarAxis.type()).head();
-				planarLength[index] =
-					region.getRange(planarAxis.type()).tail() - planarMin[index] + 1;
+				planarLength[index] = region.getRange(planarAxis.type()).tail() -
+					planarMin[index] + 1;
 			}
 			else {
 				planarMin[index] = 0;
@@ -618,8 +752,8 @@ public class ImgOpener extends AbstractImgIOComponent {
 				npRanges[index++] = region.getRange(npAxis.type());
 			}
 			else {
-				npRanges[index++] =
-					new Range(0l, m.get(imageIndex).getAxisLength(npAxis.type()) - 1);
+				npRanges[index++] = new Range(0l, m.get(imageIndex).getAxisLength(npAxis
+					.type()) - 1);
 			}
 		}
 
@@ -645,8 +779,8 @@ public class ImgOpener extends AbstractImgIOComponent {
 	}
 
 	@SuppressWarnings("rawtypes")
-	private void read(final int imageIndex, final ImgPlus imgPlus,
-		final Reader r, final SCIFIOConfig config, final PlaneConverter converter,
+	private void read(final int imageIndex, final ImgPlus imgPlus, final Reader r,
+		final SCIFIOConfig config, final PlaneConverter converter,
 		final long[] planarMin, final long[] planarLength, final Range[] npRanges,
 		final long[] npIndices) throws FormatException, IOException
 	{
@@ -669,16 +803,15 @@ public class ImgOpener extends AbstractImgIOComponent {
 			// Recursive step. Sets the non-planar indices
 			for (int i = 0; i < npRanges[npPosition].size(); i++) {
 				npIndices[npPosition] = npRanges[npPosition].get(i);
-				tmpPlane =
-					read(imageIndex, imgPlus, r, config, converter, tmpPlane, planarMin,
-						planarLength, npRanges, npIndices, depth + 1, planeCount);
+				tmpPlane = read(imageIndex, imgPlus, r, config, converter, tmpPlane,
+					planarMin, planarLength, npRanges, npIndices, depth + 1, planeCount);
 			}
 		}
 		else {
 			// Terminal step. Reads the plane at the rasterized index, given the
 			// non-planar indices
-			final int planeIndex =
-				(int) FormatTools.positionToRaster(0, r, npIndices);
+			final int planeIndex = (int) FormatTools.positionToRaster(0, r,
+				npIndices);
 
 			if (config.imgOpenerIsComputeMinMax()) {
 				populateMinMax(r, imgPlus, imageIndex);
@@ -687,14 +820,13 @@ public class ImgOpener extends AbstractImgIOComponent {
 				tmpPlane = r.openPlane(imageIndex, planeIndex, planarMin, planarLength);
 			}
 			else {
-				tmpPlane =
-					r.openPlane(imageIndex, planeIndex, tmpPlane, planarMin,
-						planarLength, config);
+				tmpPlane = r.openPlane(imageIndex, planeIndex, tmpPlane, planarMin,
+					planarLength, config);
 			}
 
 			// copy the data to the ImgPlus
-			converter.populatePlane(r, imageIndex, planeCount[0],
-				tmpPlane.getBytes(), imgPlus, config);
+			converter.populatePlane(r, imageIndex, planeCount[0], tmpPlane.getBytes(),
+				imgPlus, config);
 
 			// store color table
 			imgPlus.setColorTable(tmpPlane.getColorTable(), planeCount[0]);
@@ -709,15 +841,15 @@ public class ImgOpener extends AbstractImgIOComponent {
 	private void populateMinMax(final Reader r, final ImgPlus<?> imgPlus,
 		final int imageIndex)
 	{
-		final int sizeC =
-			(int) r.getMetadata().get(imageIndex).getAxisLength(Axes.CHANNEL);
+		final int sizeC = (int) r.getMetadata().get(imageIndex).getAxisLength(
+			Axes.CHANNEL);
 		final ReaderFilter rf = (ReaderFilter) r;
 		final MinMaxFilter minMax = rf.enable(MinMaxFilter.class);
 		for (int c = 0; c < sizeC; c++) {
-			final Double min =
-				minMax.getAxisKnownMinimum(imageIndex, Axes.CHANNEL, c);
-			final Double max =
-				minMax.getAxisKnownMinimum(imageIndex, Axes.CHANNEL, c);
+			final Double min = minMax.getAxisKnownMinimum(imageIndex, Axes.CHANNEL,
+				c);
+			final Double max = minMax.getAxisKnownMinimum(imageIndex, Axes.CHANNEL,
+				c);
 			imgPlus.setChannelMinimum(c, min == null ? Double.NaN : min);
 			imgPlus.setChannelMaximum(c, max == null ? Double.NaN : max);
 		}
@@ -725,7 +857,7 @@ public class ImgOpener extends AbstractImgIOComponent {
 
 	/**
 	 * Safely downcasts a {@code long} value to an {@code int}.
-	 * 
+	 *
 	 * @throws IllegalArgumentException if the {@code long} value is not within
 	 *           the range of valid {@code int} values.
 	 */
@@ -738,147 +870,6 @@ public class ImgOpener extends AbstractImgIOComponent {
 			throw new IllegalArgumentException("Value too small: " + l);
 		}
 		return (int) l;
-	}
-
-	// -- Deprecated API --
-
-	/**
-	 * @deprecated
-	 * @see #openImgs(String, ImgFactory)
-	 */
-	@Deprecated
-	public <T extends RealType<T> & NativeType<T>> List<SCIFIOImgPlus<T>>
-		openImgs(final String source, final ImgFactory<T> imgFactory, final T type)
-			throws ImgIOException
-	{
-		return openImgs(source, imgFactory.imgFactory(type));
-	}
-
-	/**
-	 * @deprecated
-	 * @see #openImgs(Reader, ImgFactory, SCIFIOConfig)
-	 */
-	@Deprecated
-	public <T extends RealType<T>> List<SCIFIOImgPlus<T>> openImgs(
-		Reader reader, final T type, final ImgFactory<T> imgFactory,
-		final SCIFIOConfig config) throws ImgIOException
-	{
-		return openImgs(reader, imgFactory.imgFactory(type), config);
-	}
-
-	/**
-	 * @deprecated
-	 * @see #openImgs(String)
-	 */
-	@Deprecated
-	public SCIFIOImgPlus<?> openImg(final String source) throws ImgIOException {
-		return openImgs(source).get(0);
-	}
-
-	/**
-	 * @deprecated
-	 * @see #openImgs(String, RealType)
-	 */
-	@Deprecated
-	public <T extends RealType<T> & NativeType<T>> SCIFIOImgPlus<T> openImg(
-		final String source, final T type) throws ImgIOException
-	{
-		return openImgs(source, type).get(0);
-	}
-
-	/**
-	 * @deprecated
-	 * @see #openImgs(Reader, SCIFIOConfig)
-	 */
-	@Deprecated
-	public SCIFIOImgPlus<?>
-		openImg(final String source, final SCIFIOConfig config)
-			throws ImgIOException
-	{
-		return openImgs(source, config).get(0);
-	}
-
-	/**
-	 * @deprecated
-	 * @see #openImgs(String, RealType, SCIFIOConfig)
-	 */
-	@Deprecated
-	public <T extends RealType<T> & NativeType<T>> SCIFIOImgPlus<T> openImg(
-		final String source, final T type, final SCIFIOConfig config)
-		throws ImgIOException
-	{
-		return openImgs(source, type, config).get(0);
-	}
-
-	/**
-	 * @deprecated
-	 * @see #openImgs(String, ImgFactory)
-	 */
-	@Deprecated
-	public <T extends RealType<T> & NativeType<T>> SCIFIOImgPlus<T> openImg(
-		final String source, final ImgFactory<T> imgFactory) throws ImgIOException
-	{
-		return openImgs(source, imgFactory).get(0);
-	}
-
-	/**
-	 * @deprecated
-	 * @see #openImgs(String, ImgFactory, SCIFIOConfig)
-	 */
-	@Deprecated
-	public <T extends RealType<T> & NativeType<T>> SCIFIOImgPlus<T> openImg(
-		final String source, final ImgFactory<T> imgFactory,
-		final SCIFIOConfig config) throws ImgIOException
-	{
-		return openImgs(source, imgFactory, config).get(0);
-	}
-
-	/**
-	 * @deprecated
-	 * @see #openImgs(String, ImgFactory, RealType)
-	 */
-	@Deprecated
-	public <T extends RealType<T> & NativeType<T>> SCIFIOImgPlus<T> openImg(
-		final String source, final ImgFactory<T> imgFactory, final T type)
-		throws ImgIOException
-	{
-		return openImgs(source, imgFactory, type).get(0);
-	}
-
-	/**
-	 * @deprecated
-	 * @see #openImgs(Reader, SCIFIOConfig)
-	 */
-	@Deprecated
-	public SCIFIOImgPlus<?>
-		openImg(final Reader reader, final SCIFIOConfig config)
-			throws ImgIOException
-	{
-		return openImgs(reader, config).get(0);
-	}
-
-	/**
-	 * @deprecated
-	 * @see #openImgs(Reader, RealType, SCIFIOConfig)
-	 */
-	@Deprecated
-	public <T extends RealType<T> & NativeType<T>> SCIFIOImgPlus<T> openImg(
-		final Reader reader, final T type, final SCIFIOConfig config)
-		throws ImgIOException
-	{
-		return openImgs(reader, type, config).get(0);
-	}
-
-	/**
-	 * @deprecated
-	 * @see #openImgs(Reader, RealType, ImgFactory, SCIFIOConfig)
-	 */
-	@Deprecated
-	public <T extends RealType<T>> SCIFIOImgPlus<T> openImg(final Reader reader,
-		final T type, final ImgFactory<T> imgFactory, final SCIFIOConfig config)
-		throws ImgIOException
-	{
-		return openImgs(reader, type, imgFactory, config).get(0);
 	}
 
 }

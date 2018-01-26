@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
-		<version>20.4.0</version>
+		<version>21.0.0</version>
 		<relativePath />
 	</parent>
 
@@ -120,6 +120,8 @@
 		<imglib2.version>5.1.0</imglib2.version>
 		<imglib2-cache.version>1.0.0-beta-8</imglib2-cache.version>
 		<imagej-common.version>0.25.0</imagej-common.version>
+		<scijava-common.version>2.67.1-SNAPSHOT</scijava-common.version>
+		<enforcer.skip>true</enforcer.skip>
 	</properties>
 
 	<repositories>

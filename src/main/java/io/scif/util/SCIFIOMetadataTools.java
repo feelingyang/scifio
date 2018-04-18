@@ -185,8 +185,8 @@ public class SCIFIOMetadataTools {
 		}
 
 		if (out == null) {
-			throw new FormatException("RandomAccessOutputStream object is null; " +
-				"call Writer.setSource(<String/File/RandomAccessOutputStream>) first");
+			throw new FormatException("DataHandle object is null; " +
+				"call Writer.setSource(<Location/DataHandle>) first");
 		}
 
 		if (src.get(imageIndex).getAxes().size() == 0) {
@@ -195,6 +195,30 @@ public class SCIFIOMetadataTools {
 	}
 
 	// -- Utility methods -- dimensional axes --
+
+	public static void verifyMinimumPopulated(Metadata src, Location loc)
+		throws FormatException
+	{
+		verifyMinimumPopulated(src, loc, 0);
+	}
+
+	public static void verifyMinimumPopulated(Metadata src, Location loc,
+		int imageIndex) throws FormatException
+	{
+		if (src == null) {
+			throw new FormatException("Metadata object is null; " +
+				"call Writer.setMetadata() first");
+		}
+
+		if (loc == null) {
+			throw new FormatException("Location object is null; " +
+				"call Writer.setSource(<Location>) first");
+		}
+
+		if (src.get(imageIndex).getAxes().size() == 0) {
+			throw new FormatException("Axiscount #" + imageIndex + " is 0");
+		}
+	}
 
 	/**
 	 * Guesses at a reasonable default planar axis count for the given list of

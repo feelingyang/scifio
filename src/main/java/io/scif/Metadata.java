@@ -80,6 +80,20 @@ public interface Metadata extends Serializable, HasFormat, HasSource,
 	void setSourceLocation(Location loc);
 
 	/**
+	 * Sets the output location. This is used by formats that do not use a
+	 * DataHandle.
+	 * 
+	 * @param loc the destination location
+	 */
+	void setDestinationLocation(Location loc);
+
+	/**
+	 * @return the destination location, this is used by formats that do not use a
+	 *         DataHandle.
+	 */
+	Location getDestinationLocation();
+
+	/**
 	 * @return the source location, in most cases this is equivalent to calling
 	 *         {@link #getSource()}.get()
 	 */
@@ -137,4 +151,5 @@ public interface Metadata extends Serializable, HasFormat, HasSource,
 	 * @param imageCount - Number of ImageMetadata to create.
 	 */
 	void createImageMetadata(int imageCount);
+
 }

@@ -58,6 +58,9 @@ public abstract class AbstractMetadata extends AbstractHasSource implements
 	/* The image source location associated with this Metadata. */
 	private Location sourceLocation;
 
+	/** The location an image with this metadata will be written to. */
+	private Location destinationLocation;
+
 	/* Whether the Metadata should be filtered or not. */
 	private boolean filtered;
 
@@ -112,7 +115,17 @@ public abstract class AbstractMetadata extends AbstractHasSource implements
 	public Location getSourceLocation() {
 		return sourceLocation;
 	}
-	
+
+	@Override
+	public Location getDestinationLocation() {
+		return destinationLocation;
+	}
+
+	@Override
+	public void setDestinationLocation(Location loc) {
+		this.destinationLocation = loc;
+	}
+
 	@Override
 	public DataHandle<Location> getSource() {
 		return source;

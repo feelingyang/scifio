@@ -234,26 +234,42 @@ public abstract class AbstractWriter<M extends TypedMetadata> extends
 	public void setDest(final Location loc, final int imageIndex,
 		final SCIFIOConfig config) throws FormatException, IOException
 	{
-		getMetadata().setDatasetName(loc.getName());
-		setDest(handles.create(loc));
+		DataHandle<Location> handle = handles.create(loc);
+
+		// set common metadeta
+		setDestinationMeta(imageIndex, config);
+
+		if (handle != null) {
+			this.out = handle;
+			setDest(out);
+		}
+		else { // handling Location only formats
+			getMetadata().setDatasetName(loc.getName());
+			getMetadata().setDestinationLocation(loc);
+			SCIFIOMetadataTools.verifyMinimumPopulated(metadata, loc);
+		}
 	}
 
 	@Override
 	public void setDest(final DataHandle<Location> out, final int imageIndex,
 		final SCIFIOConfig config) throws FormatException, IOException
 	{
+		setDestinationMeta(imageIndex, config);
+		getMetadata().setDatasetName(out.get().getName());
+		this.out = out;
+		SCIFIOMetadataTools.verifyMinimumPopulated(metadata, out);
+	}
+
+	private void setDestinationMeta(final int imageIndex,
+		final SCIFIOConfig config) throws FormatException
+	{
 		if (metadata == null) throw new FormatException(
 			"Can not set Destination without setting Metadata first.");
-
-		getMetadata().setDatasetName(out.get().getName());
-
-		this.out = out;
 		fps = config.writerGetFramesPerSecond();
 		options = config.writerGetCodecOptions();
 		model = config.writerGetColorModel();
 		compression = config.writerGetCompression();
 		sequential = config.writerIsSequential();
-		SCIFIOMetadataTools.verifyMinimumPopulated(metadata, out);
 		initialized = new boolean[metadata.getImageCount()][];
 		for (int i = 0; i < metadata.getImageCount(); i++) {
 			initialized[i] = new boolean[(int) metadata.get(imageIndex)

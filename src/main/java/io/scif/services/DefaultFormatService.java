@@ -54,6 +54,7 @@ import java.util.WeakHashMap;
 import org.scijava.app.AppService;
 import org.scijava.io.handle.DataHandle;
 import org.scijava.io.location.Location;
+import org.scijava.io.location.RemoteLocation;
 import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -320,6 +321,11 @@ public class DefaultFormatService extends AbstractService implements
 	public Format getFormat(final Location id, final SCIFIOConfig config)
 		throws FormatException
 	{
+		// We do not want remote file access by each checker
+		if (id instanceof RemoteLocation) {
+			config.checkerSetOpen(false);
+		}
+
 		Format format = formatCache().get(id);
 		if (format == null) {
 			format = getFormatList(id, config, true).get(0);

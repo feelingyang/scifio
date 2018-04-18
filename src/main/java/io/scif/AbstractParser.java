@@ -328,4 +328,14 @@ public abstract class AbstractParser<M extends TypedMetadata> extends
 		return parse(handle, SCIFIOMetadataTools.<M> castMeta(meta), config);
 	}
 
+	/**
+	 * Allows implementations of this class that override
+	 * {@link #parse(Location, Metadata, SCIFIOConfig)} to set the metadata.
+	 * 
+	 * @param meta the metadata object for this parser
+	 */
+	protected void setMetaData(final Metadata meta) {
+		metadata = SCIFIOMetadataTools.<M> castMeta(meta);
+	}
+
 }

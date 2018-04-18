@@ -109,7 +109,7 @@ public class DefaultDatasetIOService extends AbstractService implements
 	@Override
 	public boolean canSave(final Location destination) {
 		try {
-			return formatService.getWriterByExtension(destination) != null;
+			return formatService.getWriterForLocation(destination) != null;
 		}
 		catch (final FormatException exc) {
 			log.error(exc);

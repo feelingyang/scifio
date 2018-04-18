@@ -144,14 +144,15 @@ public interface FormatService extends SCIFIOService, Versioned {
 	<W extends Writer> Format getFormatFromWriter(Class<W> writerClass);
 
 	/**
-	 * {@code Writer} lookup method using exclusively the supported suffix list.
+	 * {@code Writer} lookup method using the suffix or other methods to locate a
+	 * fitting writer.
+	 * 
 	 * This bypasses the {@code Checker} logic, and thus does not guarantee the
 	 * associated {@code Format} can read image sources of the provided type.
 	 *
-	 * @throws FormatException
+	 * @throws FormatException if now writer could be found
 	 */
-//	  FIXME: Maybe change this so that it takes only the suffix as a string?
-	Writer getWriterByExtension(Location fileId) throws FormatException;
+	Writer getWriterForLocation(Location fileId) throws FormatException;
 
 	/**
 	 * {@code Format} lookup method using the {@code Checker} component.

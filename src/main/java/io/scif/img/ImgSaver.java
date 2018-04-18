@@ -402,7 +402,7 @@ public class ImgSaver extends AbstractImgIOComponent {
 		Writer w = null;
 
 		try {
-			w = formatService.getWriterByExtension(id);
+			w = formatService.getWriterForLocation(id);
 		}
 		catch (final FormatException e) {
 			throw new ImgIOException(e);

@@ -250,7 +250,7 @@ public class DefaultFormatService extends AbstractService implements
 	}
 
 	@Override
-	public Writer getWriterByExtension(final Location fileId)
+	public Writer getWriterForLocation(final Location fileId)
 		throws FormatException
 	{
 		boolean matched = false;

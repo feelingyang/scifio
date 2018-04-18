@@ -258,6 +258,12 @@ public class DefaultFormatService extends AbstractService implements
 		Writer w = null;
 
 		for (final Format f : formats()) {
+			
+			if (f.ownsLocationType(fileId)) {
+				w = f.createWriter();
+				matched = true;
+			}
+			
 			if (!matched && FormatTools.checkSuffix(fileId.getName(), f
 				.getSuffixes()))
 			{
@@ -271,7 +277,7 @@ public class DefaultFormatService extends AbstractService implements
 
 		if (w == null) {
 			throw new FormatException(
-				"No compatible output format found for extension: " + fileId);
+				"No compatible output format found for location: " + fileId);
 		}
 		return w;
 	}

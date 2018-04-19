@@ -244,7 +244,6 @@ public abstract class AbstractWriter<M extends TypedMetadata> extends
 			setDest(out);
 		}
 		else { // handling Location only formats
-			getMetadata().setDatasetName(loc.getName());
 			getMetadata().setDestinationLocation(loc);
 			SCIFIOMetadataTools.verifyMinimumPopulated(metadata, loc);
 		}

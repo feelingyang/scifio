@@ -424,7 +424,7 @@ public class ImgSaver extends AbstractImgIOComponent {
 			if (id == null) {
 				throw new ImgIOException(
 					"A Writer with no Metadata was provided, with no way to determine " +
-						"the desired output path. Default value: ImgPlus's source.");
+						"the desired output path.");
 			}
 			try {
 				populateMeta(w, imgPlus, config, id, imageIndex);

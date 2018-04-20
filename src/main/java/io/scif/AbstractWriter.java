@@ -241,7 +241,7 @@ public abstract class AbstractWriter<M extends TypedMetadata> extends
 
 		if (handle != null) {
 			this.out = handle;
-			setDest(out);
+			setDest(out, imageIndex, config);
 		}
 		else { // handling Location only formats
 			getMetadata().setDestinationLocation(loc);

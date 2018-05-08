@@ -34,7 +34,7 @@ public class AxisGuesserTest {
 
 	/** Method for testing pattern guessing logic. */
 
-//	@Test
+	// @Test
 	public void testAxisguessing() throws FormatException, IOException {
 		final Context context = new Context();
 		final SCIFIO scifio = new SCIFIO(context);

@@ -22,7 +22,7 @@ public class HTTPHandleIntegrationTest {
 	private Context ctx = new Context();
 
 	
-	@Test
+	// @Test
 	public void testJPEG() throws MalformedURLException, URISyntaxException, ImgIOException {
 		ImgOpener opener = new ImgOpener(ctx);
 		opener.openImgs(new HTTPLocation("https://imagej.net/images/Diatoms.jpg"));

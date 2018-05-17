@@ -68,6 +68,7 @@ public class SCIFIOCellImg<T extends NativeType<T>, A> extends
 		final CellGrid grid, final Fraction entitiesPerPixel,
 		final Cache<Long, Cell<A>> cache, final A accessType)
 	{
+		super(grid, entitiesPerPixel, cache, accessType);
 		this.factory = factory;
 		reader = factory.reader();
 	}

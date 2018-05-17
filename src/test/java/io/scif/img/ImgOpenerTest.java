@@ -250,7 +250,7 @@ public class ImgOpenerTest {
 		final ImgFactory<T> factory, final SCIFIOConfig options, final long size)
 		throws ImgIOException
 	{
-		final ImgPlus<T> imgPlus = imgOpener.openImgs(id, factory, options).get(0);
+		final ImgPlus<T> imgPlus = (ImgPlus<T>) imgOpener.openImgs(id, factory, options).get(0);
 		assertNotNull(imgPlus);
 		assertEquals(size, imgPlus.size());
 	}
@@ -269,7 +269,7 @@ public class ImgOpenerTest {
 		imgPlus = imgOpener.openImgs(id, type, new SCIFIOConfig()).get(0);
 		assertNotNull(imgPlus);
 		imgPlus = null;
-		imgPlus = imgOpener.openImgs(id, factory).get(0);
+		imgPlus = (ImgPlus<T>) imgOpener.openImgs(id, factory).get(0);
 		assertNotNull(imgPlus);
 		imgPlus = null;
 	}
@@ -291,7 +291,7 @@ public class ImgOpenerTest {
 		 */
 		@Override
 		public <T extends RealType<T>> List<SCIFIOImgPlus<T>> openImgs(
-			final Reader reader, final ImgFactory<T> imgFactory,
+			final Reader reader, final T type, final ImgFactory<T> imgFactory,
 			final SCIFIOConfig config) throws ImgIOException
 		{
 			final Metadata m = reader.getMetadata();
@@ -303,7 +303,7 @@ public class ImgOpenerTest {
 				offset += 10;
 			}
 
-			return super.openImgs(reader, imgFactory, config);
+			return super.openImgs(reader, type, imgFactory, config);
 		}
 	}
 }

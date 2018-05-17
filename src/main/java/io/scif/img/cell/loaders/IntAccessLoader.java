@@ -29,15 +29,14 @@
 
 package io.scif.img.cell.loaders;
 
-import io.scif.ImageMetadata;
-import io.scif.Reader;
-import io.scif.img.ImageRegion;
-import io.scif.util.FormatTools;
-
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.function.IntFunction;
 
+import io.scif.ImageMetadata;
+import io.scif.Reader;
+import io.scif.img.ImageRegion;
+import io.scif.util.FormatTools;
 import net.imglib2.img.basictypeaccess.IntAccess;
 import net.imglib2.img.basictypeaccess.array.IntArray;
 import net.imglib2.type.numeric.integer.GenericIntType;

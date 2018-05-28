@@ -184,7 +184,7 @@ public class FilePattern {
 		if (files.length == 0) {
 			try {
 				final BrowsableLocation sibling = baseLoc.sibling(pattern);
-				if (dataHandleService.handleExists(sibling)) {
+				if (dataHandleService.exists(sibling)) {
 					files = new Location[] { sibling };
 				}
 			}
@@ -303,7 +303,7 @@ public class FilePattern {
 			// regex pattern
 
 			final Location patternLocation = baseLoc.sibling(pattern);
-			if (dataHandleService.handleExists(patternLocation)) {
+			if (dataHandleService.exists(patternLocation)) {
 				fileList.add(patternLocation);
 				return;
 			}
@@ -328,7 +328,7 @@ public class FilePattern {
 				dir = pattern.substring(0, endNotRegex);
 				end = endNotRegex;
 			}
-			if ("".equals(dir) || !dataHandleService.handleExists(baseLoc
+			if ("".equals(dir) || !dataHandleService.exists(baseLoc
 				.sibling(dir)))
 			{
 				localfiles = getAllFiles(baseLoc.parent());

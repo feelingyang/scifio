@@ -941,7 +941,7 @@ public class DICOMFormat extends AbstractFormat {
 
 			final BrowsableLocation mifSibling = parent.sibling(parent
 				.getName() + ".mif");
-			if (dataHandleService.handleExists(mifSibling)) {
+			if (dataHandleService.exists(mifSibling)) {
 
 				final Set<BrowsableLocation> list = grandparent.children();
 				for (final BrowsableLocation f : list) {

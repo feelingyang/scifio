@@ -202,7 +202,7 @@ public class NRRDFormat extends AbstractFormat {
 				// look for a matching .nhdr file
 				String name = loc.getName();
 				Location header = bLoc.sibling(name + ".nhdr");
-				if (dataHandleService.handleExists(header)) {
+				if (dataHandleService.exists(header)) {
 					return true;
 				}
 
@@ -212,7 +212,7 @@ public class NRRDFormat extends AbstractFormat {
 				}
 
 				header = bLoc.sibling(name + ".nhdr");
-				return dataHandleService.handleExists(header);
+				return dataHandleService.exists(header);
 			}
 			catch (final IOException e) {
 				return false;
@@ -271,7 +271,7 @@ public class NRRDFormat extends AbstractFormat {
 				changedStream = true;
 				id += ".nhdr";
 
-				if (!dataHandleService.handleExists(loc.sibling(id))) {
+				if (!dataHandleService.exists(loc.sibling(id))) {
 					id = id.substring(0, id.lastIndexOf('.'));
 					id = id.substring(0, id.lastIndexOf('.'));
 					id += ".nhdr";
@@ -384,7 +384,7 @@ public class NRRDFormat extends AbstractFormat {
 			else {
 				final BrowsableLocation f = asBrowsableLocation(getSource());
 				final Location parent = f.parent();
-				if (dataHandleService.handleExists(f) && parent != null) {
+				if (dataHandleService.exists(f) && parent != null) {
 					String dataFile = meta.getDataFile().getName();
 					dataFile = dataFile.substring(dataFile.indexOf(File.separator) + 1);
 					final Location dataLocation = f.sibling(dataFile);

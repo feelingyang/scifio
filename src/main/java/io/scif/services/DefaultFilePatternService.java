@@ -295,7 +295,7 @@ public class DefaultFilePatternService extends AbstractService implements
 			final Location[] checkFiles = new FilePattern(base, checkPattern,
 				dataHandleService).getFiles();
 
-			if (!patterns.contains(pattern) && (!dataHandleService.handleExists(base
+			if (!patterns.contains(pattern) && (!dataHandleService.exists(base
 				.sibling(pattern))) && patternSuffix.equals(baseSuffix) &&
 				ArrayUtils.indexOf(checkFiles, base) >= 0)
 			{

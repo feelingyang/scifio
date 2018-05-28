@@ -335,7 +335,7 @@ public class MicromanagerFormat extends AbstractFormat {
 				if (!noPixels) {
 					for (final Location tiff : pos.tiffs) {
 						try {
-							if (dataHandleService.handleExists(tiff)) files.add(tiff);
+							if (dataHandleService.exists(tiff)) files.add(tiff);
 						}
 						catch (final IOException exc) {
 							log().error("Could not check if location: " + tiff.getURI()

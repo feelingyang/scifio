@@ -230,7 +230,7 @@ public class FileStitcher extends AbstractReaderFilter {
 				patternIds = fp.isValid() && fp.getFiles().length > 1;
 			}
 			else {
-				patternIds = !dataHandleService.handleExists(browsableSource);
+				patternIds = !dataHandleService.exists(browsableSource);
 //						&& locationService.getMappedId(source) .equals(source);
 			}
 
@@ -309,7 +309,7 @@ public class FileStitcher extends AbstractReaderFilter {
 				if (file instanceof DummyLocation || file instanceof TestImgLocation)
 					continue;
 
-				if (!dataHandleService.handleExists(file)) {
+				if (!dataHandleService.exists(file)) {
 					throw new FormatException("File #" + i + " (" + file +
 						") does not exist.");
 				}

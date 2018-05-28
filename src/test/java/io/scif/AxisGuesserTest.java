@@ -52,7 +52,7 @@ public class AxisGuesserTest {
 			if (fp.isValid()) {
 				log.info("Pattern is valid.");
 				final Location id = fp.getFiles()[0];
-				if (!dataHandleService.handleExists(id)) {
+				if (!dataHandleService.exists(id)) {
 					log.info("File '" + id + "' does not exist.");
 				}
 				else {

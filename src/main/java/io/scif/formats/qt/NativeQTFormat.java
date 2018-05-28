@@ -411,7 +411,7 @@ public class NativeQTFormat extends AbstractFormat {
 
 				BrowsableLocation f = browsableBaseLoc.sibling(base + ".qtr");
 				log().debug("Searching for research fork:");
-				if (dataHandleService.handleExists(f)) {
+				if (dataHandleService.exists(f)) {
 					log().debug("\t Found: " + f);
 					if (getSource() != null) getSource().close();
 					updateSource(f);
@@ -423,7 +423,7 @@ public class NativeQTFormat extends AbstractFormat {
 				else {
 					log().debug("\tAbsent: " + f);
 					f = browsableBaseLoc.sibling("._" + base);
-					if (dataHandleService.handleExists(f)) {
+					if (dataHandleService.exists(f)) {
 						log().debug("\t Found: " + f);
 						parseLocation(meta, offsets, f);
 					}
@@ -431,7 +431,7 @@ public class NativeQTFormat extends AbstractFormat {
 						log().debug("\tAbsent: " + f);
 						f = browsableBaseLoc.sibling(File.separator + ".." +
 							File.separator + "namedfork" + File.separator + "rsrc");
-						if (dataHandleService.handleExists(f)) {
+						if (dataHandleService.exists(f)) {
 							log().debug("\t Found: " + f);
 							parseLocation(meta, offsets, f);
 						}
